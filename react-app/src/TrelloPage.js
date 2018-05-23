@@ -3,40 +3,6 @@ import ReactDOM from 'react-dom';
 import Modal from 'react-bootstrap4-modal';
 import Datetime from 'react-datetime';
 
-class RemoteComponent extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            response: ''
-        };
-    }
-
-    componentDidMount() {
-        this.callAPI()
-          .then(res => this.setState({ response: res.express }))
-          .catch(err => console.log(err));
-    }
-
-    callAPI = async() => {
-        const response = await fetch('/api/hello');
-        const body = await response.json();
-    
-        if (response.status !== 200) throw Error(body.message);
-    
-        return body;
-    }
-
-    render() {
-        return (
-            <h1>{this.state.response}</h1>
-        );
-      }
-
-
-}
-
-
 class TrelloCreateCardModal extends React.Component {
 
     constructor(props) {
@@ -311,18 +277,30 @@ class TrelloPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            cards: [
-                {
-                    id: 'card-01',
-                    header: 'Task 01',
-                    description: 'task description',
-                    due: new Date(),
-                    state: 'b',
-                    owner: 'gganesan'
-                }
-            ],
+            cards: [],
             createCardShow: false
         };
+    }
+
+    fetchCards = async() => {
+        const response = await fetch('/api/cards');
+        const body = await response.json();
+        if (response.status !== 200) throw Error(body.message);
+        return body;
+    }
+
+    componentDidMount() {
+        this.fetchCards()
+            .then(response => {
+                let copyState = {...this.state};
+                response.cards.forEach(card => {
+                    card.due = new Date(card.due);
+                    copyState.cards.push(card)
+                });
+                this.setState(copyState);
+            })
+            .catch(error => console.log(error));
+
     }
 
     render() {
@@ -338,7 +316,6 @@ class TrelloPage extends React.Component {
                     createCardShow={this.state.createCardShow}
                     addCard={this.addCard.bind(this)}
                     hideCreateCard={this.toggleCreateCard.bind(this)}/>
-                <RemoteComponent/>
             </div>
         );
     }

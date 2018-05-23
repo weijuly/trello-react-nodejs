@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "scripts": {
     "client": "cd react-app && npm start",
-    "server": "nodemon index.js",
+    "server": "DEBUG=trello-react-nodejs node index.js",
     "start": "node index.js",
     "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
   },
   "dependencies": {
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "moment": "^2.22.1",
+    "winston": "^3.0.0-rc5"
   },
   "devDependencies": {
     "concurrently": "^3.5.0"
