@@ -1,0 +1,16 @@
+{
+  "name": "trello-react-nodejs",
+  "version": "1.0.0",
+  "scripts": {
+    "client": "cd react-app && npm start",
+    "server": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "express": "^4.16.2"
+  },
+  "devDependencies": {
+    "concurrently": "^3.5.0"
+  }
+}
