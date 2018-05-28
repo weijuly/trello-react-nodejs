@@ -3,6 +3,36 @@ import ReactDOM from 'react-dom';
 import Modal from 'react-bootstrap4-modal';
 import Datetime from 'react-datetime';
 
+
+class TrelloErrorModal extends React.Component {
+
+    reload() {
+        window.location.reload();
+    }
+
+    render() {
+        return (
+            <Modal visible={this.props.show}>
+            <div className="modal-header">
+                <h5 className="modal-title">Error</h5>
+            </div>
+            <div className="modal-body">
+                <p>Cannot connect to Trello data server!</p>
+                <p className="small">{this.props.error}</p>
+            </div>
+            <div className="modal-footer">
+                <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={this.reload.bind(this)}>
+                    Try again
+                </button>
+            </div>
+      </Modal>
+        );
+    }
+}
+
 class TrelloCreateCardModal extends React.Component {
 
     constructor(props) {
@@ -112,7 +142,7 @@ class TrelloCreateCardButton extends React.Component {
                 className="btn btn-outline-success"
                 onClick={this.props.showCreateCard}
                 type="button">
-                +
+                <span className="oi oi-plus"></span>
             </button>
         );
     }
@@ -194,6 +224,7 @@ class TrelloCard extends React.Component {
                                 {this.renderButton('i', 'media-play', 'btn-primary')}
                                 {this.renderButton('x', 'x', 'btn-danger')}
                                 {this.renderButton('c', 'check', 'btn-success')}
+                                {this.renderButton('d', 'trash', 'btn-secondary')}
                             </div>
                         </div>
                         <div class="col-6">
@@ -260,12 +291,19 @@ class TrelloPage extends React.Component {
             }
         }
         this.setState({cards: copyState.cards});
+        this.updateCards();
+        window.location.reload();
     }
 
     addCard(card) {
-        let copyState = {...this.state};
-        copyState.cards.push(card);
-        this.setState({cards: copyState.cards});
+        this.createCard(card);
+        window.location.reload();
+        // let copyState = {...this.state};
+        // copyState.cards.push(card);
+
+        // this.setState({cards: copyState.cards});
+        // this.updateCards();
+        // window.location.reload();
     }
 
     toggleCreateCard() {
@@ -278,15 +316,53 @@ class TrelloPage extends React.Component {
         super(props);
         this.state = {
             cards: [],
-            createCardShow: false
+            createCardShow: false,
+            errorShow: false,
+            error: ''
         };
     }
 
     fetchCards = async() => {
         const response = await fetch('/api/cards');
         const body = await response.json();
-        if (response.status !== 200) throw Error(body.message);
+        if (response.status !== 200) {
+            let copyState = {...this.state};
+            copyState.errorShow = true;
+            copyState.error = body.error;
+            this.setState(copyState);
+        }
         return body;
+    }
+
+    updateCards = async() => {
+        const response = await fetch('/api/cards', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-type': 'application/json'
+            },
+            body: JSON.stringify(this.state.cards)
+        });
+        const body = await response.json();
+        if (response.status !== 200) {
+            throw Error(body.message);
+        }
+    }
+
+    createCard = async(card) => {
+        const response = await fetch('/api/cards', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-type': 'application/json'
+            },
+            body: JSON.stringify(card)
+        });
+        const body = await response.json();
+        if (response.status !== 201) {
+            throw Error(body.message);
+        }
+        window.location.reload();
     }
 
     componentDidMount() {
@@ -300,7 +376,6 @@ class TrelloPage extends React.Component {
                 this.setState(copyState);
             })
             .catch(error => console.log(error));
-
     }
 
     render() {
@@ -316,6 +391,9 @@ class TrelloPage extends React.Component {
                     createCardShow={this.state.createCardShow}
                     addCard={this.addCard.bind(this)}
                     hideCreateCard={this.toggleCreateCard.bind(this)}/>
+                <TrelloErrorModal
+                    show={this.state.errorShow}
+                    error={this.state.error}/>
             </div>
         );
     }

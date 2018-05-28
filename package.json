@@ -10,6 +10,8 @@
   "dependencies": {
     "express": "^4.16.2",
     "moment": "^2.22.1",
+    "mongodb": "^3.1.0-beta4",
+    "morgan": "^1.9.0",
     "winston": "^3.0.0-rc5"
   },
   "devDependencies": {
