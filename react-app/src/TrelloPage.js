@@ -280,9 +280,6 @@ class TrelloPage extends React.Component {
                 return;
             }
         }
-        // this.setState({cards: copyState.cards});
-        // this.updateCards();
-        // window.location.reload();
     }
 
     addCard(card) {
@@ -316,7 +313,7 @@ class TrelloPage extends React.Component {
             this.setState(copyState);
         }
         return body;
-    }
+    };
 
     updateCard = async(card) => {
         const response = await fetch('/api/cards/'+ card.id, {
@@ -331,7 +328,7 @@ class TrelloPage extends React.Component {
         if (response.status !== 200) {
             throw Error(body.message);
         }
-    }
+    };
 
     createCard = async(card) => {
         const response = await fetch('/api/cards', {
@@ -347,7 +344,7 @@ class TrelloPage extends React.Component {
             throw Error(body.message);
         }
         window.location.reload();
-    }
+    };
 
     componentDidMount() {
         this.fetchCards()

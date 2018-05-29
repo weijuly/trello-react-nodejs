@@ -1,13 +1,15 @@
 const express = require('express');
 const app = express();
 const moment = require('moment');
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, label, printf } = format;
+const {createLogger, format, transports} = require('winston');
+const {combine, timestamp, label, printf} = format;
 const port = process.env.PORT || 5000;
 const bodyParser = require('body-parser');
 const mongodb = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const morgan = require('morgan');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 
 const appLogger = createLogger({
     format: combine(timestamp(), printf(message => {
@@ -15,17 +17,45 @@ const appLogger = createLogger({
     })),
     transports: [
         new transports.Console(),
-        new transports.File({ filename: 'logs/app.log', level: 'info' })
+        new transports.File({filename: 'logs/app.log', level: 'info'})
     ]
 });
 
 app.use(morgan('combined'));
 app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(session({
+    key: 'TrelloSession',
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        expires: 60000
+    }
+}));
+
+
+
+
+
+app.use((req, res, next) => {
+    if (req.cookies.TrelloSession && !req.session.user) {
+        res.clearCookie('TrelloSession');
+    }
+    next();
+});
+const sessionChecker = (req, res, next) => {
+    if (req.cookies.TrelloSession && req.session.user) {
+        res.redirect('/');
+    }
+    next();
+};
+
 
 app.get('/api/cards', (req, res) => {
-    content = {cards:[]}
+    content = {cards: []}
     mongodb.connect('mongodb://trello:password@localhost:27017/trello', (error, connection) => {
-        if(error) {
+        if (error) {
             appLogger.error(error.toString());
             res.status(500).send({
                 error: error.toString()
@@ -42,7 +72,7 @@ app.get('/api/cards', (req, res) => {
                 });
                 return;
             }
-            for(i = 0; i < cards.length; i++ ){
+            for (i = 0; i < cards.length; i++) {
                 content.cards.push({
                     id: cards[i]._id.toString(),
                     header: cards[i].header,
@@ -80,7 +110,7 @@ app.get('/api/cards', (req, res) => {
 
 app.post('/api/cards', (req, res) => {
     mongodb.connect('mongodb://trello:password@localhost:27017/trello', (error, connection) => {
-        if(error) {
+        if (error) {
             appLogger.error(error.toString());
             res.status(500).send({
                 error: error.toString()
@@ -106,7 +136,7 @@ app.post('/api/cards', (req, res) => {
 
 app.patch('/api/cards/:card', (req, res) => {
     mongodb.connect('mongodb://trello:password@localhost:27017/trello', (error, connection) => {
-        if(error) {
+        if (error) {
             appLogger.error(error.toString());
             res.status(500).send({
                 error: error.toString()
@@ -115,15 +145,16 @@ app.patch('/api/cards/:card', (req, res) => {
         }
         database = connection.db('trello');
         database.collection('trello').updateOne({
-            _id: ObjectID(req.body.id)}, {
-                $set: {
-                    header: req.body.header,
-                    description: req.body.description,
-                    due: req.body.due,
-                    state: req.body.state,
-                    owner: req.body.owner
-                }
-            }, (error, result) => {
+            _id: ObjectID(req.body.id)
+        }, {
+            $set: {
+                header: req.body.header,
+                description: req.body.description,
+                due: req.body.due,
+                state: req.body.state,
+                owner: req.body.owner
+            }
+        }, (error, result) => {
             if (error) {
                 appLogger.error(error.toString());
                 res.status(500).send({
