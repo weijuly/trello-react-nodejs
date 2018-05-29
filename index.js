@@ -86,26 +86,6 @@ app.get('/api/cards', (req, res) => {
             connection.close();
         });
     });
-
-    // res.send({
-    //     cards: [
-    //         {
-    //             id: 'card-01',
-    //             header: 'Task 01',
-    //             description: 'task description',
-    //             due: new Date(),
-    //             state: 'b',
-    //             owner: 'gganesan'
-    //         },
-    //         {
-    //             id: 'card-02',
-    //             header: 'Task 02',
-    //             description: 'task description',
-    //             due: new Date(),
-    //             state: 'b',
-    //             owner: 'sthirugnanansamba'
-    //         },
-    //     ]});
 });
 
 app.post('/api/cards', (req, res) => {
@@ -170,5 +150,13 @@ app.patch('/api/cards/:card', (req, res) => {
         });
     });
 });
+
+app.post('/api/auth', (req, res) => {
+    if(req.body.user === 'gopi') {
+        res.send({});
+    } else {
+        res.status(401).send({});
+    }
+})
 
 app.listen(port, () => console.log(`Listening on port ${port}`));

@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from 'react-bootstrap4-modal';
 import Datetime from 'react-datetime';
-
+import Cookies from 'universal-cookie';
 
 class TrelloErrorModal extends React.Component {
 
@@ -301,6 +301,7 @@ class TrelloPage extends React.Component {
             errorShow: false,
             error: ''
         };
+        this.cookie = new Cookies();
     }
 
     fetchCards = async() => {
@@ -346,7 +347,15 @@ class TrelloPage extends React.Component {
         window.location.reload();
     };
 
+    checkUser() {
+        const cookie = this.cookie.get('trello');
+        if (!cookie || cookie !== 'auth') {
+            window.location.replace("/auth");
+        }
+    }
+
     componentDidMount() {
+        this.checkUser();
         this.fetchCards()
             .then(response => {
                 let copyState = {...this.state};
