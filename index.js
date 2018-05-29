@@ -6,6 +6,7 @@ const { combine, timestamp, label, printf } = format;
 const port = process.env.PORT || 5000;
 const bodyParser = require('body-parser');
 const mongodb = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID;
 const morgan = require('morgan');
 
 const appLogger = createLogger({
@@ -78,11 +79,6 @@ app.get('/api/cards', (req, res) => {
 });
 
 app.post('/api/cards', (req, res) => {
-    res.set({
-        'Content-type': 'application/json',
-        'date': new Date(),
-        'server': 'api.trello.com'
-    });
     mongodb.connect('mongodb://trello:password@localhost:27017/trello', (error, connection) => {
         if(error) {
             appLogger.error(error.toString());
@@ -102,6 +98,42 @@ app.post('/api/cards', (req, res) => {
             }
             res.status(201).send({
                 error: ''
+            });
+            connection.close();
+        });
+    });
+});
+
+app.patch('/api/cards/:card', (req, res) => {
+    mongodb.connect('mongodb://trello:password@localhost:27017/trello', (error, connection) => {
+        if(error) {
+            appLogger.error(error.toString());
+            res.status(500).send({
+                error: error.toString()
+            });
+            return;
+        }
+        database = connection.db('trello');
+        database.collection('trello').updateOne({
+            _id: ObjectID(req.body.id)}, {
+                $set: {
+                    header: req.body.header,
+                    description: req.body.description,
+                    due: req.body.due,
+                    state: req.body.state,
+                    owner: req.body.owner
+                }
+            }, (error, result) => {
+            if (error) {
+                appLogger.error(error.toString());
+                res.status(500).send({
+                    error: error.toString()
+                });
+                return;
+            }
+            res.send({
+                error: '',
+                message: 'req.body.id updated successfully'
             });
             connection.close();
         });

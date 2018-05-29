@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import Modal from 'react-bootstrap4-modal';
 import Datetime from 'react-datetime';
 
@@ -171,18 +170,6 @@ class TrelloHeader extends React.Component {
     
 }
 
-class TrelloFooter extends React.Component {
-    render() {
-        return (
-            <footer className="footer">
-                <div className="container">
-                    <span className="text-muted">Place sticky footer content here.</span>
-                </div>
-            </footer>
-        );
-    }
-}
-
 class TrelloCard extends React.Component {
     
     renderButton(cardState, displayText, contextClass) {
@@ -288,22 +275,19 @@ class TrelloPage extends React.Component {
         for (let card of copyState.cards ) {
             if (card.id === id) {
                 card.state = cardState;
+                this.updateCard(card);
+                window.location.reload();
+                return;
             }
         }
-        this.setState({cards: copyState.cards});
-        this.updateCards();
-        window.location.reload();
+        // this.setState({cards: copyState.cards});
+        // this.updateCards();
+        // window.location.reload();
     }
 
     addCard(card) {
         this.createCard(card);
         window.location.reload();
-        // let copyState = {...this.state};
-        // copyState.cards.push(card);
-
-        // this.setState({cards: copyState.cards});
-        // this.updateCards();
-        // window.location.reload();
     }
 
     toggleCreateCard() {
@@ -334,14 +318,14 @@ class TrelloPage extends React.Component {
         return body;
     }
 
-    updateCards = async() => {
-        const response = await fetch('/api/cards', {
-            method: 'POST',
+    updateCard = async(card) => {
+        const response = await fetch('/api/cards/'+ card.id, {
+            method: 'PATCH',
             headers: {
                 'Accept': 'application/json',
                 'Content-type': 'application/json'
             },
-            body: JSON.stringify(this.state.cards)
+            body: JSON.stringify(card)
         });
         const body = await response.json();
         if (response.status !== 200) {
