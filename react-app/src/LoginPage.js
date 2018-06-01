@@ -22,7 +22,7 @@ class LoginPage extends React.Component {
             },
             body: JSON.stringify(creds)
         });
-        const body = await response.json();
+        await response.json();
         if (response.status !== 200) {
             window.location.replace("/auth");
         }
@@ -53,6 +53,12 @@ class LoginPage extends React.Component {
         this.setState(state);
     }
 
+    componentDidMount() {
+        const cookie = this.cookie.get('trello');
+        if (cookie && cookie === 'auth') {
+            window.location.replace("/");
+        }
+    }
 
     render() {
         return (
